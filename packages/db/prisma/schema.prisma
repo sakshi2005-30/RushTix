@@ -1,0 +1,72 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+enum Status{
+  BOOKED
+  AVAILABLE
+}
+enum Role{
+  CUSTOMER
+  ADMIN
+}
+enum StatusB{
+  CONFIRMED
+  CANCELLED
+}
+model User{
+  id                String  @id  @default(uuid())
+  name              String
+  email             String @unique
+  password          String
+  createdAt         DateTime @default(now()) 
+  role              Role     @default(CUSTOMER)
+  booking           Booking[]
+
+}
+model Event{
+  id                String @id @default(uuid())
+  name              String
+  description       String
+  date              DateTime
+  venue             String
+  createdAt         DateTime @default(now())
+  seat              Seat[]
+   booking           Booking[]
+}
+model Seat{
+   id                String @id @default(uuid())
+   eventId           String
+   seatNo            Int
+   row               Int
+   status            Status @default(AVAILABLE)
+   createdAt         DateTime @default(now())
+   event             Event @relation(fields: [eventId],references: [id])
+  booking           Booking[]
+
+  @@unique([eventId,seatNo])
+  @@index([eventId,status])
+}
+model Booking{
+   id               String @id @default(uuid())
+   userId           String
+   eventId          String
+   seatId           String
+   status           StatusB @default(CONFIRMED)
+   createdAt        DateTime @default(now())
+
+   user             User @relation(fields: [userId],references: [id])
+   event            Event @relation(fields: [eventId],references: [id])
+   seat             Seat @relation(fields: [seatId],references: [id])
+
+  @@index([userId,createdAt])
+}
