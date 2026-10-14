@@ -35,6 +35,7 @@ export const signup =async(req:Request,res:Response,next:NextFunction)=>{
 export const signin=async(req:Request,res:Response,next:NextFunction)=>{
     try{
         const response=await authService.signin(req.body);
+        createToken(response.id,res);
         res.status(201).json({
             data:response
         })
@@ -48,6 +49,18 @@ export const logout=async(req:Request,res:Response,next:NextFunction)=>{
         res.clearCookie("token");
         return res.status(200).json({
             message:"Logged off successfully"
+        })
+    }
+    catch(error){
+        next(error);
+    }
+}
+export const me=async(req:Request,res:Response,next:NextFunction)=>{
+    try{
+        const userId=req.userId||"";
+        const response=await authService.me(userId);
+        res.status(200).json({
+            data:response
         })
     }
     catch(error){

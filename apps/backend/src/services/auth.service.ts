@@ -84,3 +84,27 @@ export const signin=async(data:{
         throw error;
     }
 }
+export const me=async(id:string):Promise<SignUpResponse>=>{
+    try{
+        const user=await prisma.user.findFirst({
+            where:{
+                id
+            },
+            select:{
+                id:true,
+                name:true,
+                email:true,
+                createdAt:true,
+                role:true
+            }
+        })
+        if(!user){
+            throw new Error("No user present with this id");
+        }
+        return user;
+
+    }
+    catch(error){
+        throw error;
+    }
+}
