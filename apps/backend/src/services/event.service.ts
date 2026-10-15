@@ -21,8 +21,9 @@ export const createEvent = async (data: {
     description: string;
     venue: string;
     date: Date;
+    totalSeats:number
 }) => {
-    const { name, description, venue, date } = data;
+    const { name, description, venue, date,totalSeats } = data;
 
     return prisma.event.create({
         data: {
@@ -30,6 +31,7 @@ export const createEvent = async (data: {
             description,
             venue,
             date: new Date(date),
+            totalSeats:Number(totalSeats)
         },
         select: {
             id: true,
@@ -37,6 +39,7 @@ export const createEvent = async (data: {
             description: true,
             venue: true,
             date: true,
+            totalSeats:true
         },
     });
 };
