@@ -39,6 +39,7 @@ model Event{
   description       String
   date              DateTime
   venue             String
+  totalSeats        Int
   createdAt         DateTime @default(now())
   seat              Seat[]
   booking           Booking[]
@@ -53,7 +54,7 @@ model Seat{
    event             Event @relation(fields: [eventId],references: [id])
   booking           Booking[]
 
-  @@unique([eventId,seatNo])
+  @@unique([eventId,row,seatNo])
   @@index([eventId,status])
 }
 model Booking{
