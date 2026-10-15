@@ -14,6 +14,7 @@ interface Update {
     description?: string;
     venue?: string;
     date?: Date;
+    totalSeats?:Number
 }
 
 export const createEvent = async (data: {
@@ -56,6 +57,7 @@ export const getEvents = async (query: GetEventQuery) => {
                 description: true,
                 venue: true,
                 date: true,
+                totalSeats:true
             },
         });
 
@@ -84,6 +86,7 @@ export const getEvents = async (query: GetEventQuery) => {
             description: true,
             venue: true,
             date: true,
+            totalSeats:true
         },
     });
 };
@@ -97,6 +100,7 @@ export const deleteEvent = async (id: string) => {
             description: true,
             venue: true,
             date: true,
+            totalSeats:true
         },
     });
 
@@ -128,6 +132,7 @@ export const updateEvent = async (id: string, data: Update) => {
             }),
             ...(data.venue !== undefined && { venue: data.venue }),
             ...(data.date !== undefined && { date: data.date }),
+            ...(data.totalSeats!==undefined && {totalSeats:Number(data.totalSeats)})
         },
         select: {
             id: true,
@@ -135,6 +140,7 @@ export const updateEvent = async (id: string, data: Update) => {
             description: true,
             venue: true,
             date: true,
+            totalSeats:true
         },
     });
 };

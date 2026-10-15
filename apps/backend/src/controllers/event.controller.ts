@@ -89,6 +89,7 @@ export const updateEvent = async (
             date: typeof req.body.date === "string"
                 ? new Date(req.body.date)
                 : undefined,
+            totalSeats:typeof req.body.totalSeats!=="number"?undefined:req.body.totalSeats
         };
 
         const response = await eventService.updateEvent(id, data);
