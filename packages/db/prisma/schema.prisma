@@ -41,7 +41,7 @@ model Event{
   venue             String
   createdAt         DateTime @default(now())
   seat              Seat[]
-   booking           Booking[]
+  booking           Booking[]
 }
 model Seat{
    id                String @id @default(uuid())

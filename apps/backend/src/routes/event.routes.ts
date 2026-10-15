@@ -1,13 +1,20 @@
+
 import { Router } from "express";
 import { adminMiddleware } from "../middlewares/admin.middleware.js";
 import { middleware } from "../middlewares/auth.middleware.js";
-import { createEvent, getEvent } from "../controllers/event.controller.js";
+import {
+  createEvent,
+  deleteEvent,
+  getEvent,
+  updateEvent,
+} from "../controllers/event.controller.js";
 
-const router:Router=Router();
+const router: Router = Router();
 
-router.post("/",middleware,adminMiddleware,createEvent)
-router.get("/",getEvent);
-// router.put("/",adminMiddleware,)
-router.get("/:id",getEvent);
-// router.delete("/",adminMiddleware,)
-export default router
+router.post("/", middleware, adminMiddleware, createEvent);
+router.get("/", getEvent);
+router.get("/:id", getEvent);
+router.put("/:id", middleware, adminMiddleware, updateEvent);
+router.delete("/:id", middleware, adminMiddleware, deleteEvent);
+
+export default router;
