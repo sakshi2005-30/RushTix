@@ -55,3 +55,29 @@ export const getUserBookings=async(req:Request,res:Response,next:NextFunction)=>
         next(error);
     }
 }
+export const cancelBooking=async(req:Request,res:Response,next:NextFunction)=>{
+    try{
+        const userId=req.userId;
+        const bookingId=req.params.bookingId;
+        if(!userId || typeof userId!=="string"){
+            return res.status(400).json({
+                message:"Invalid userId"
+            })
+        }
+        if(!bookingId || typeof bookingId!=="string"){
+            return res.status(400).json({
+                message:"Invalid booking id"
+            })
+        }
+        const data={
+            userId,bookingId
+        }
+        const response=await bookingService.cancelBooking(bookingId,userId);
+        return res.status(200).json({
+            data:response
+        })
+    }
+    catch(error){
+        next(error);
+    }
+}

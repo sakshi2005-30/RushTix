@@ -2,7 +2,12 @@ import {prisma} from "@repo/db";
 interface BookingDetails{
     eventId:string,
     userId:string,
-    seatId:string
+    seatId:string,
+   
+}
+interface CancelBooking{
+    bookingId:string,
+    userId:string
 }
 type BookingStatus = "CONFIRMED" | "CANCELLED";
 interface Booking{
@@ -75,3 +80,39 @@ export const getUsesBookings=async(userId:string):Promise<Booking[]>=>{
         throw error;
     }
 }
+export const cancelBooking = async (
+  bookingId: string,
+  userId: string
+) => {
+  return prisma.$transaction(async (tx) => {
+    const booking = await tx.booking.findFirst({
+      where: {
+        id: bookingId,
+        userId,
+      },
+    });
+
+    if (!booking) {
+      throw new Error("BOOKING_NOT_FOUND");
+    }
+
+    if (booking.status === "CANCELLED") {
+      throw new Error("BOOKING_ALREADY_CANCELLED");
+    }
+
+    await tx.booking.update({
+      where: { id: booking.id },
+      data: { status: "CANCELLED" },
+    });
+
+    await tx.seat.update({
+      where: { id: booking.seatId },
+      data: { status: "AVAILABLE" },
+    });
+
+    return {
+      bookingId: booking.id,
+      status: "CANCELLED",
+    };
+  });
+};
