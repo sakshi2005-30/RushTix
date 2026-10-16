@@ -38,3 +38,20 @@ export const createBooking=async(req:Request,res:Response,next:NextFunction)=>{
         next(error);
     }
 }
+export const getUserBookings=async(req:Request,res:Response,next:NextFunction)=>{
+    try{
+        const userId=req.userId;
+        if(!userId){
+            return res.status(401).json({
+                message:"Unauthorized user"
+            })
+        }
+        const response=await bookingService.getUsesBookings(userId);
+        return res.status(200).json({
+            data:response
+        })
+    }
+    catch(error){
+        next(error);
+    }
+}

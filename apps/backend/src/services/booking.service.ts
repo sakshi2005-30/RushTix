@@ -54,3 +54,24 @@ export const createBooking=async(data:BookingDetails):Promise<Booking>=>{
         throw error;
     }
 }
+export const getUsesBookings=async(userId:string):Promise<Booking[]>=>{
+    try{
+       return await prisma.booking.findMany({
+            where:{
+                userId
+            },
+            select:{
+                id: true,
+                userId: true,
+                eventId: true,
+                seatId: true,
+                status: true,
+                createdAt: true,
+            }
+        })
+       
+    }
+    catch(error){
+        throw error;
+    }
+}
