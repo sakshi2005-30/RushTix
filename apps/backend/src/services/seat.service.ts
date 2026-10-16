@@ -9,7 +9,7 @@ interface GetSeats{
 interface SeatDetails{
     id:string,
     eventId:string,
-    row:Number,
+    row:number,
     seatNo:number,
     status:"BOOKED"|"AVAILABLE",
     createdAt:Date
