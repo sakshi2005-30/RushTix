@@ -1,4 +1,5 @@
 import { Response,Request,NextFunction } from "express";
+import { AppError } from "../utils/AppError.js";
 import * as bookingService from "../services/booking.service.js";
 export const createBooking=async(req:Request,res:Response,next:NextFunction)=>{
     try{
@@ -6,21 +7,15 @@ export const createBooking=async(req:Request,res:Response,next:NextFunction)=>{
         const eventId=req.params.eventId;
         const {seatId}=req.body;
         if (!userId) {
-      return res.status(401).json({
-        message: "You must be logged in to book a seat",
-      });
+        throw new AppError("You must be logged in to book a seat", 401);
     }
-
         if (typeof eventId !== "string" || !eventId) {
-            return res.status(400).json({
-                message: "Invalid eventId",
-            });
+           throw new AppError("Invalid event ID", 400);
         }
 
         if (typeof seatId !== "string" || !seatId.trim()) {
-            return res.status(400).json({
-                message: "A valid seatId is required",
-            });
+            throw new AppError("A valid seat ID is required", 400);
+        
         }
 
         const booking = await bookingService.createBooking({
@@ -42,9 +37,7 @@ export const getUserBookings=async(req:Request,res:Response,next:NextFunction)=>
     try{
         const userId=req.userId;
         if(!userId){
-            return res.status(401).json({
-                message:"Unauthorized user"
-            })
+           throw new AppError("Unauthorized user", 401);
         }
         const response=await bookingService.getUsesBookings(userId);
         return res.status(200).json({
@@ -60,17 +53,13 @@ export const cancelBooking=async(req:Request,res:Response,next:NextFunction)=>{
         const userId=req.userId;
         const bookingId=req.params.bookingId;
         if(!userId || typeof userId!=="string"){
-            return res.status(400).json({
-                message:"Invalid userId"
-            })
+           throw new AppError("Invalid booking ID", 400);
+
         }
         if(!bookingId || typeof bookingId!=="string"){
             return res.status(400).json({
                 message:"Invalid booking id"
             })
-        }
-        const data={
-            userId,bookingId
         }
         const response=await bookingService.cancelBooking(bookingId,userId);
         return res.status(200).json({

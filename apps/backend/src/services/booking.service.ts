@@ -1,9 +1,9 @@
 import {prisma} from "@repo/db";
+import { AppError } from "../utils/AppError.js";
 interface BookingDetails{
     eventId:string,
     userId:string,
     seatId:string,
-   
 }
 interface CancelBooking{
     bookingId:string,
@@ -32,7 +32,10 @@ export const createBooking=async(data:BookingDetails):Promise<Booking>=>{
                 }
             })
             if(seats.count===0){
-                throw new Error("No seat available");
+                 throw new AppError(
+                    "Seat is unavailable or does not belong to this event",
+                    409
+                );
             }
             const booking=await tx.booking.create({
                 data:{
@@ -93,17 +96,20 @@ export const cancelBooking = async (
     });
 
     if (!booking) {
-      throw new Error("BOOKING_NOT_FOUND");
+      throw new AppError("Booking not found", 404);
     }
 
     if (booking.status === "CANCELLED") {
-      throw new Error("BOOKING_ALREADY_CANCELLED");
+     throw new AppError("Booking is already cancelled", 409);
     }
 
-    await tx.booking.update({
+    const result=await tx.booking.updateMany({
       where: { id: booking.id },
       data: { status: "CANCELLED" },
     });
+    if (result.count=== 0) {
+        throw new AppError("Booking is already cancelled", 409);
+    }
 
     await tx.seat.update({
       where: { id: booking.seatId },

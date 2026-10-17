@@ -1,12 +1,11 @@
 import { Request,Response,NextFunction } from "express";
+import { AppError } from "../utils/AppError.js";
 import * as seatService from "../services/seat.service.js";
 export const createSeats=async(req:Request,res:Response,next:NextFunction)=>{
     try{
         const id=req.params.eventId
         if(!id || typeof id!=="string"){
-            return res.status(400).json({
-                message:"eventId is invalid"
-            })
+           throw new AppError("Invalid event ID", 400);
         }
         const response=await seatService.createSeats(id);
         return res.status(201).json({
@@ -22,9 +21,7 @@ export const getSeats=async(req:Request,res:Response,next:NextFunction)=>{
     try{
         const eventId=req.params.eventId
         if(!eventId || typeof eventId!=="string"){
-            return res.status(400).json({
-                message:"eventId is invalid"
-            })
+           throw new AppError("Status must be AVAILABLE or BOOKED", 400);
         }
        const { row: rawRow, status: rawStatus } = req.query;
 
@@ -32,7 +29,8 @@ export const getSeats=async(req:Request,res:Response,next:NextFunction)=>{
     if (rawRow !== undefined) {
       const parsed = typeof rawRow === "string" ? Number(rawRow) : NaN;
       if (!Number.isInteger(parsed) || parsed < 1) {
-        return res.status(400).json({ message: "row must be a positive integer" });
+        throw new AppError("row must be a positive integer",400);
+       
       }
       row = parsed;
     }
@@ -40,7 +38,7 @@ export const getSeats=async(req:Request,res:Response,next:NextFunction)=>{
     let status: "AVAILABLE" | "BOOKED" | undefined;
     if (rawStatus !== undefined) {
       if (rawStatus !== "AVAILABLE" && rawStatus !== "BOOKED") {
-        return res.status(400).json({ message: "status must be AVAILABLE or BOOKED" });
+        throw new AppError("status must be AVAILABLE or BOOKED",400);
       }
       status = rawStatus; // narrowed to the literal union by the check above
     }

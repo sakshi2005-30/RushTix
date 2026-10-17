@@ -25,11 +25,7 @@ export const signup =async(req:Request,res:Response,next:NextFunction)=>{
         })
     }
     catch(error){
-       // next(error);
-       console.log(error);
-       res.status(500).json({
-        message:"server error"
-       })
+       next(error);
     }
 }
 export const signin=async(req:Request,res:Response,next:NextFunction)=>{

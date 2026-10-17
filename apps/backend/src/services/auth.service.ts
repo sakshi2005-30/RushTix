@@ -2,7 +2,7 @@ import {prisma} from "@repo/db"
 import bcrypt from "bcrypt"
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-
+import {AppError }from "../utils/AppError.js"
 interface SignUpResponse{
     id:string,
     name:string,
@@ -11,10 +11,6 @@ interface SignUpResponse{
     role :"ADMIN"| "CUSTOMER",
     createdAt:Date
 }
-
-
-
-
 export const signup=async(data:{
     name:string,
     email:string,
@@ -27,9 +23,13 @@ export const signup=async(data:{
                 email
             }
         })
-        if(existingUser){
-            throw new Error("User already exits")
-        }
+        if (existingUser) {
+            throw new AppError(
+                "An account with this email already exists",
+                409
+            );
+        }      
+        
         const hashedPassword=await bcrypt.hash(password,10);
         const user=await prisma.user.create({
             data:{
@@ -71,14 +71,15 @@ export const signin=async(data:{
                 createdAt:true
             }
         })
-        if(!user){
-            throw new Error("No user present please signup!");
+       if (!user || !(await bcrypt.compare(password, user.password))) {
+            throw new AppError("Invalid email or password", 401);
         }
-        const compare=await bcrypt.compare(password,user.password);
-        if(!compare){
-            throw new Error("Email or password is wrong");
-        }
-        return user;
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            createdAt: user.createdAt,
+        };
     }
     catch(error){
         throw error;
@@ -98,10 +99,10 @@ export const me=async(id:string):Promise<SignUpResponse>=>{
                 role:true
             }
         })
-        if(!user){
-            throw new Error("No user present with this id");
+        if (!user) {
+            throw new AppError("User not found", 404);
         }
-        return user;
+            return user;
 
     }
     catch(error){

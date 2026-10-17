@@ -1,4 +1,5 @@
-import {prisma} from "@repo/db";
+import { Prisma, prisma } from "@repo/db";
+import { AppError } from "../utils/AppError.js";
 
 type Status = "AVAILABLE" | "BOOKED";
 interface GetSeats{
@@ -14,49 +15,45 @@ interface SeatDetails{
     status:"BOOKED"|"AVAILABLE",
     createdAt:Date
 }
-export const createSeats=async(eventId:string)=>{
-    try{
-        const event=await prisma.event.findUnique({
-            where:{
-                id:eventId
-            },
-            select:{
-                id:true,
-                totalSeats:true
-            }
-        })
-        if(!event){
-            throw new Error("The event doesn't exists");
-        }
-        const checkIfExists=await prisma.seat.findFirst({
-            where:{
-                eventId:event.id
-            }
-        })
-        if(checkIfExists){
-            throw new Error("The seats are already generated");
-        }
-        const seatsPerRow=10;
-        const seats=Array.from({length:event.totalSeats},(_,index)=>(
-            {eventId,
-            row:Math.floor(index/seatsPerRow)+1,
-            seatNo:(index%seatsPerRow)+1
-        }
+const seatsPerRow = 10;
 
-        ))
-        const create=await prisma.seat.createMany({
-         data: seats,
-        });
-        return {
-              eventId: event.id,
-            totalSeatsCreated: seats.length,
-        }
+/** Shared seat layout used by event creation and the protected seat-generation route. */
+export const generateSeats = async (
+    database: Pick<Prisma.TransactionClient, "seat">,
+    eventId: string,
+    totalSeats: number,
+) => {
+    const seats = Array.from({ length: totalSeats }, (_, index) => ({
+        eventId,
+        row: Math.floor(index / seatsPerRow) + 1,
+        seatNo: (index % seatsPerRow) + 1,
+    }));
 
-    }
-    catch(error){
+    try {
+        await database.seat.createMany({ data: seats });
+    } catch (error) {
+        if (typeof error === "object" && error !== null && "code" in error && error.code === "P2002") {
+            throw new AppError("Seats have already been generated for this event", 409);
+        }
         throw error;
     }
-}
+
+    return { eventId, totalSeatsCreated: seats.length };
+};
+
+export const createSeats = async (eventId: string) => {
+    const event = await prisma.event.findUnique({
+        where: { id: eventId },
+        select: { id: true, totalSeats: true },
+    });
+    if (!event) throw new AppError("Event not found", 404);
+
+    return prisma.$transaction(async (tx) => {
+        const existing = await tx.seat.findFirst({ where: { eventId } });
+        if (existing) throw new AppError("Seats have already been generated for this event", 409);
+        return generateSeats(tx, event.id, event.totalSeats);
+    });
+};
 export const getSeats=async(data:GetSeats):Promise<SeatDetails[]>=>{
     try{
         const event=await prisma.event.findUnique({
@@ -69,7 +66,7 @@ export const getSeats=async(data:GetSeats):Promise<SeatDetails[]>=>{
             }
         })
         if(!event){
-            throw new Error("The event doesn't exists");
+            throw new AppError("Event not found", 404);
         }
         const res= await prisma.seat.findMany({
             where:{

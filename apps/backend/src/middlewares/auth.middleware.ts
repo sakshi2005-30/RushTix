@@ -1,31 +1,28 @@
 import jwt from "jsonwebtoken"
-import cookieParser from "cookie-parser"
 import { Request,Response,NextFunction } from "express"
+import { AppError } from "../utils/AppError.js";
 export const middleware=async(req:Request,res:Response,next:NextFunction)=>{
-    try{
-        const token=req.cookies?.token;
-        if(!token){
-            return res.status(400).json({
-                message:"Please login to continue"
-            })
-        }
-        const secret=process.env.JWT_SECRET||"";
-        const decoded=jwt.verify(token,secret);
-         if (typeof decoded === "string" || typeof decoded.id !== "string") {
-            res.status(401).json({
-            
-                message: "Invalid authentication token",
-            });
-            return;
-         }
-         req.userId=decoded.id;
-         next();
-
+    const token=req.cookies?.token;
+    if(!token){
+       if (!token) {
+    throw new AppError("Please login to continue", 401);
+}
     }
-    catch(error){
-        console.log(error);
-        res.status(500).json({
-            message:"Invalid or expired token. Please log in again."
-        })
+    
+    const secret=process.env.JWT_SECRET;
+    if(!secret){
+        return next(new Error("JWT_SECRET is not configured"));
+    }
+    try{
+        const decoded=jwt.verify(token,secret);
+       if (typeof decoded === "string" || typeof decoded.id !== "string") {
+            throw new AppError("Invalid authentication token", 401);
+        }
+        req.userId=decoded.id;
+        return next();
+    } catch {
+         return next(
+        new AppError("Invalid or expired token. Please log in again.", 401)
+    );
     }
 }
