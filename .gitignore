@@ -17,6 +17,8 @@ coverage
 
 # Turbo
 .turbo
+.pnpm-store
+/apps/web/tsconfig.tsbuildinfo
 
 # Vercel
 .vercel

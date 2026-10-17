@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsc -b && node  --trace-uncaught  dist/index.js"
+    "dev": "tsc -b && node --trace-uncaught dist/index.js",
+    "build": "tsc -b",
+    "start": "node dist/index.js"
   },
   "keywords": [],
   "author": "",

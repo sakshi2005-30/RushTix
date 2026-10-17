@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -b"
+    "build": "prisma generate --config prisma7.config.ts && tsc -b"
   },
   "keywords": [],
   "author": "",
